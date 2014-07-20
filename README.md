@@ -5,7 +5,7 @@ Same "batch" of yii2, but Simplified. Just for fun
 
 
 yii-batch / protected / components / Batch.php
-
+ 
 Usage:
 ```         $criteria = new \CDbCriteria();
         $criteria->limit = 10000;
