@@ -2,10 +2,13 @@
 /**
  * Class Batch
  *
+ * foreach((new \Batch(100, \doctor\models\Doctor::model(), false))->findAll($criteria) as $item){
+var_dump(count($item) . "\n");
+}
  * Usage:
  *         $criteria = new \CDbCriteria();
  *         $criteria->limit = 10000;
- *         foreach(new \Batch(1000, Models\Heisenberg::model()->with('Jesse'), $criteria) as $meth){
+ *         foreach((new \Batch(1000, Models\Heisenberg::model()->with('Jesse')))->findAll() as $meth){
  *              echo $meth->getColor();
  *         }
  *
@@ -48,7 +51,6 @@ class Batch implements Iterator
      * @return array the data fetched
      */
     protected function fetchData(){
-
         if($this->_criteria === null){
             $this->_criteria = new \CDbCriteria();
         }
@@ -72,17 +74,30 @@ class Batch implements Iterator
      * Constructor
      * @param integer $batchSize
      * @param CActiveRecord $model
-     * @param CDbCriteria $criteria
-     * @param array $params
+     * @param boolean $each
      */
-    public function __construct($batchSize = 10, CActiveRecord $model, \CDbCriteria $criteria=null, array $params = [])
+    public function __construct($batchSize = 10, CActiveRecord $model, $each = false)
     {
         $this->batchSize = $batchSize;
         $this->_model = $model;
-        $this->_criteria = $criteria;
-        $this->_params= $params;
+        $this->each = $each;
+    }
+
+    /**
+     * @param CDbCriteria $criteria
+     * @param array $params
+     * @return $this
+     */
+    public function findAll(\CDbCriteria $criteria=null, array $params = []){
+        if($this->_criteria === null)
+            $this->_criteria = $criteria;
+
+        if($this->_params=== null)
+            $this->_params = $params;
+
         $data = $this->fetchData();
         $this->setData($data);
+        return $this;
     }
 
     /**
@@ -134,8 +149,14 @@ class Batch implements Iterator
      */
     public function next()
     {
-        // each ???
-        $this->_key=next($this->_keys);
+
+        if($this->each){
+            $this->valid();
+            $this->_key=next($this->_keys);
+        }else{
+            $this->getNextData();
+        }
+
     }
 
     /**
@@ -146,10 +167,14 @@ class Batch implements Iterator
     public function valid()
     {
         if($this->_key===false && !$this->_empty && $this->_limit){
-            $this->_offset += $this->batchSize;
-            $data = $this->fetchData();
-            $this->setData($data);
+            $this->getNextData();
         }
         return $this->_key!==false;
+    }
+
+    private function getNextData(){
+        $this->_offset += $this->batchSize;
+        $data = $this->fetchData();
+        $this->setData($data);
     }
 }
