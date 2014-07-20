@@ -33,7 +33,7 @@ class Batch implements Iterator
      * @var mixed current key
      */
     private $_key;
-
+    private $_prev;
     private $_empty;
 
     private $_model;
@@ -44,7 +44,6 @@ class Batch implements Iterator
     private $_offset = 0;
 
     private $_params = [];
-
 
     /**
      * Fetches the next batch of data.
@@ -59,15 +58,17 @@ class Batch implements Iterator
             $this->batchSize = $this->_criteria->limit;
         }
 
-        if($this->_limit < $this->_criteria->limit)
+        if($this->_limit < $this->_criteria->limit){
             $this->_limit = $this->_criteria->limit;
+        }
 
         $this->_criteria->limit = $this->batchSize;
         $this->_criteria->offset = $this->_offset;
-        $data = $this->_model->findAll($this->_criteria);
-        $this->_limit -= count($data);
-        $this->_empty = $data ? false:true;
-        return $data;
+
+        $this->_d = $this->_model->findAll($this->_criteria);
+
+        $this->_limit -= count($this->_d);
+        $this->_empty = $this->_d ? false:true;
     }
 
     /**
@@ -79,8 +80,12 @@ class Batch implements Iterator
     public function __construct($batchSize = 10, CActiveRecord $model, $each = false)
     {
         $this->batchSize = $batchSize;
-        $this->_model = $model;
         $this->each = $each;
+        $this->_model = clone $model;
+    }
+
+    public function __destructor(){
+        $this->flush();
     }
 
     /**
@@ -95,19 +100,21 @@ class Batch implements Iterator
         if($this->_params=== null)
             $this->_params = $params;
 
-        $data = $this->fetchData();
-        $this->setData($data);
+        $this->fetchData();
+        $this->setData();
         return $this;
     }
 
     /**
      * Set iterator data
-     * @param $data
      */
-    private function setData($data){
-        $this->_d=$data;
-        $this->_keys=array_keys($data);
+    private function setData(){
+        $this->_keys=array_keys($this->_d);
         $this->_key=reset($this->_keys);
+    }
+
+    public function flush(){
+        unset($this->_d);
     }
 
     /**
@@ -116,6 +123,7 @@ class Batch implements Iterator
      */
     public function rewind()
     {
+
         $this->_key=reset($this->_keys);
     }
 
@@ -136,10 +144,11 @@ class Batch implements Iterator
      */
     public function current()
     {
-        if($this->each)
+        if($this->each){
             return $this->_d[$this->_key];
-        else
+        }else{
             return $this->_d;
+        }
 
     }
 
@@ -149,7 +158,7 @@ class Batch implements Iterator
      */
     public function next()
     {
-
+        $this->_prev = $this->_key;
         if($this->each){
             $this->valid();
             $this->_key=next($this->_keys);
@@ -174,7 +183,9 @@ class Batch implements Iterator
 
     private function getNextData(){
         $this->_offset += $this->batchSize;
-        $data = $this->fetchData();
-        $this->setData($data);
+        $this->flush();
+        $this->fetchData();
+        $this->setData();
+
     }
 }
