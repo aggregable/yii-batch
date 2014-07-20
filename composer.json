@@ -1,0 +1,14 @@
+{
+    "name": "dutchakdev/batch",
+    "require": {
+        "yiisoft/yii": "@dev",
+        "codeception/codeception": "@dev"
+    },
+    "authors": [
+        {
+            "name": "Roman Dutchak",
+            "email": "dutchakdev@gmail.com"
+        }
+    ],
+    "minimum-stability": "alpha"
+}
