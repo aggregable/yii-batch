@@ -3,7 +3,7 @@
 return array(
     'components' => array(
         'db' => array(
-            'connectionString' => 'mysql:host=localhost;dbname=malmo_test',
+            'connectionString' => 'mysql:host=localhost;dbname=yiibatch_test',
             'emulatePrepare' => true,
             'username' => '',
             'password' => '',

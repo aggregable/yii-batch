@@ -16,7 +16,7 @@ var_dump(count($item) . "\n");
  * @web https://github.com/dutchakdev
  */
 
-class Batch extends CApplicationComponent implements Iterator
+class Batch extends CComponent implements Iterator
 {
     public $batchSize = 10;
     public $each = false;
@@ -40,35 +40,46 @@ class Batch extends CApplicationComponent implements Iterator
 
     private $_criteria;
 
-    private $_limit = 0;
-    private $_offset = 0;
+    private $_limit = false;
+    private $_offset = false;
 
     private $_params = [];
+
+
+    private $count = 0;
 
     /**
      * Fetches the next batch of data.
      * @return array the data fetched
      */
+
     protected function fetchData(){
+
         if($this->_criteria === null){
             $this->_criteria = new \CDbCriteria();
         }
 
-        if($this->_criteria->limit <= $this->batchSize){
-            $this->batchSize = $this->_criteria->limit;
+        if($this->count !== $this->_criteria->limit){
+
+            if($this->_criteria->limit > 0 && $this->_criteria->limit < $this->batchSize){
+                $this->batchSize = $this->_criteria->limit;
+            }
+
+            if($this->_limit === false) {
+                $this->_limit = $this->_criteria->limit;
+            }
+
+            $this->_criteria->limit = $this->batchSize;
+
+            if($this->_offset === false)
+                $this->_criteria->offset = $this->_offset;
+
+            $this->_d = $this->_model->findAll($this->_criteria);
+
+            $this->_limit -= $this->getCountObject();
+            $this->_empty = $this->_d ? false:true;
+            $this->count += $this->getCountObject();
         }
-
-        if($this->_limit < $this->_criteria->limit){
-            $this->_limit = $this->_criteria->limit;
-        }
-
-        $this->_criteria->limit = $this->batchSize;
-        $this->_criteria->offset = $this->_offset;
-
-        $this->_d = $this->_model->findAll($this->_criteria);
-
-        $this->_limit -= count($this->_d);
-        $this->_empty = $this->_d ? false:true;
     }
 
     /**
@@ -79,9 +90,16 @@ class Batch extends CApplicationComponent implements Iterator
      */
     public function __construct($batchSize = 10, CActiveRecord $model, $each = false)
     {
-        $this->batchSize = (int)$batchSize;
+        if($batchSize)
+            $this->batchSize = (int)$batchSize;
+
         $this->each = $each;
         $this->_model = clone $model;
+    }
+
+    private function getCountObject(){
+        if($this->_d)
+            return count($this->_d);
     }
 
     public function __destructor(){
@@ -93,8 +111,9 @@ class Batch extends CApplicationComponent implements Iterator
      * @param array $params
      * @return $this
      */
-    public function findAll(\CDbCriteria $criteria=null, array $params = []){
-        if($this->_criteria === null)
+    public function findAll(\CDbCriteria $criteria = null, array $params = []){
+
+        if($criteria !== null)
             $this->_criteria = $criteria;
 
         if($this->_params=== null)
@@ -114,7 +133,7 @@ class Batch extends CApplicationComponent implements Iterator
     }
 
     public function flush(){
-        unset($this->_d);
+        $this->_d = [];
     }
 
     /**
@@ -123,6 +142,8 @@ class Batch extends CApplicationComponent implements Iterator
      */
     public function rewind()
     {
+        if(!$this->_keys)
+            $this->_keys = [];
 
         $this->_key=reset($this->_keys);
     }

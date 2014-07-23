@@ -17,21 +17,56 @@ class BatchTest extends CDbTestCase{
 
     }
 
-    public function batchSizes()
-    {
-        return array(
-            array(null),
-            array(1),
-            array(10),
-            array(110),
-        );
+    private function getBatch($batchSize=10, $each=false){
+        return new Batch($batchSize, Order::model(), $each);
     }
 
+
     public function testInsteadOf(){
-        $batch = new Batch(10, Order::model());
-        $this->assertInstanceOf('CApplicationComponent', $batch);
+        $batch = $this->getBatch();
+        $this->assertInstanceOf('CComponent', $batch);
         $this->assertInstanceOf('Traversable', $batch);
     }
 
+    public function testObjectCountWithoutCriteria(){
 
+        foreach($this->getBatch(null)->findAll() as $items){
+            $this->assertTrue(count($items) === 10);
+            break;
+        }
+
+        foreach($this->getBatch(10)->findAll() as $items){
+            $this->assertTrue(count($items) === 10);
+            break;
+        }
+
+        foreach($this->getBatch(3)->findAll() as $items){
+            $this->assertTrue(count($items) === 3);
+            break;
+        }
+
+        //test each
+
+        foreach($this->getBatch(3, true)->findAll() as $items){
+            $this->assertTrue(count($items) === 1);
+            break;
+        }
+
+
+    }
+
+    public function testObjectCountWithCriteria(){
+
+
+        foreach($this->getBatch(10)->findAll(new CDbCriteria(['limit'=>1])) as $items){
+            $this->assertTrue(count($items) === 1);
+            break;
+        }
+
+        foreach($this->getBatch(10)->findAll(new CDbCriteria(['limit'=>10])) as $items){
+            $this->assertTrue(count($items) === 10);
+            break;
+        }
+
+    }
 } 

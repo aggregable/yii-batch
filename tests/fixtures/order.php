@@ -3,7 +3,7 @@
 $data = [];
 
 $count = 1;
-while($count < 30){
+while($count < 100){
     array_push($data, [
             'id'=> $count,
             'name' => 'Channel # ' . rand(0,1000),
