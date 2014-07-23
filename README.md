@@ -42,13 +42,13 @@ Add to your composer.json
 
 Run command
 ```bash
-	composer update
+$ composer update
 ```
 
 #### From git/zip:
 
 ```bash
-	git clone git@github.com:dutchakdev/yii-batch.git ./path_to_exstensions/
+$ git clone git@github.com:dutchakdev/yii-batch.git ./path_to_exstensions/
 ```
 
 
