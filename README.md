@@ -34,10 +34,10 @@ foreach((new \Batch(100, Models\Heisenberg::model()->with('Jesse'), true)->findA
 #### From composer:
 Add to your composer.json
 ```json
-		"require": {
-			...
-    		"dutchakdev/yii-batch": "@dev"
-    	}
+"require": {
+	...
+	"dutchakdev/yii-batch": "@dev"
+}
 ```
 
 Run command
@@ -54,9 +54,8 @@ $ git clone git@github.com:dutchakdev/yii-batch.git ./path_to_exstensions/
 
 Add to yor config
 ```php
-	'import'=>array(
-		...
-        'path_to_vendor.dutchakdev.yii-batch.Batch',
-        ...
-    ),
+'import'=>array(
+	...
+    'path_to_vendor.dutchakdev.yii-batch.Batch'
+),
 ```
