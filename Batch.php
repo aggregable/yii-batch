@@ -15,9 +15,9 @@ var_dump(count($item) . "\n");
  * @author Roman Dutchak <dutchakdev@gmail.com>
  * @web https://github.com/dutchakdev
  */
-class Batch implements Iterator
-{
 
+class Batch extends CApplicationComponent implements Iterator
+{
     public $batchSize = 10;
     public $each = false;
 
@@ -79,7 +79,7 @@ class Batch implements Iterator
      */
     public function __construct($batchSize = 10, CActiveRecord $model, $each = false)
     {
-        $this->batchSize = $batchSize;
+        $this->batchSize = (int)$batchSize;
         $this->each = $each;
         $this->_model = clone $model;
     }
