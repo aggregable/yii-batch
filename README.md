@@ -28,3 +28,13 @@ foreach((new \Batch(100, Models\Heisenberg::model()->with('Jesse'), true)->findA
   // 1 object in $meth, 10 query to db
 }
 ```
+
+-- Instalation
+Add to your config
+```php
+	'import'=>array(
+		...
+        'path_to_vendor.dutchakdev.yii-batch.Batch',
+        ...
+    ),
+```
