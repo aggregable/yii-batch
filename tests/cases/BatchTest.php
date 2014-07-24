@@ -42,29 +42,29 @@ class BatchTest extends CDbTestCase{
     public function providerLimit()
     {
         return array(
-//            [null, 10, 43],
-//            [1, 1, 5],
-//            [4, 4, 20],
-//            [100, 100, 50],
+            [null, 10, 43],
+            [1, 1, 5],
+            [4, 4, 20],
+            [100, 100, 50],
             [10, 10, 100],
             [10, 10, 1000],
         );
     }
 
-//    /**
-//     * @dataProvider provider
-//     */
-//    public function testObjectCountWithoutCriteria($expectedSize, $actualSize){
-//        foreach($this->getBatch($expectedSize)->findAll() as $items){
-//            $this->assertTrue(count($items) <= $actualSize);
-//            break;
-//        }
-//
-//        foreach($this->getBatch($expectedSize, true)->findAll() as $items){
-//            $this->assertEquals(1, count($items));
-//            break;
-//        }
-//    }
+    /**
+     * @dataProvider provider
+     */
+    public function testObjectCountWithoutCriteria($expectedSize, $actualSize){
+        foreach($this->getBatch($expectedSize)->findAll() as $items){
+            $this->assertEquals(count($items), $actualSize);
+            break;
+        }
+
+        foreach($this->getBatch($expectedSize, true)->findAll() as $items){
+            $this->assertEquals(count($items), 1);
+            break;
+        }
+    }
 
     /**
      * @dataProvider providerLimit
@@ -81,11 +81,16 @@ class BatchTest extends CDbTestCase{
         $this->assertEquals($eachCount, $expectedLimit);
         unset($eachCount);
 
-//        $eachCount = 0;
-//        foreach($this->getBatch($expectedSize, true)->findAll(new CDbCriteria(['limit'=>$expectedLimit])) as $items){
-//            $this->assertEquals(1, count($items));
-//        }
-//        unset($eachCount);
+        // each
+        $eachCount = 0;
+        $batch = $this->getBatch($expectedSize, true);
+        $criteria = new CDbCriteria(['limit'=>$expectedLimit]);
+        foreach($batch->findAll($criteria) as $items){
+            $this->assertEquals(count($items), 1);
+            $eachCount += count($items);
+        }
+        $this->assertEquals($eachCount, $expectedLimit);
+        unset($eachCount);
 
 
 

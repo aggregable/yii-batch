@@ -3,8 +3,8 @@
  * Class Batch
  *
  * foreach((new \Batch(100, \doctor\models\Doctor::model(), false))->findAll($criteria) as $item){
-var_dump(count($item) . "\n");
-}
+ * var_dump(count($item) . "\n");
+ * }
  * Usage:
  *         $criteria = new \CDbCriteria();
  *         $criteria->limit = 10000;
@@ -33,7 +33,6 @@ class Batch extends CComponent implements Iterator
      * @var mixed current key
      */
     private $_key;
-    private $_prev;
     private $_empty;
 
     private $_model;
@@ -41,45 +40,48 @@ class Batch extends CComponent implements Iterator
     private $_criteria;
 
     private $_limit = false;
-    private $_offset = false;
+    private $_offset = 0;
 
     private $_params = [];
-
-
-    private $count = 0;
+    private $_count = 0;
 
     /**
      * Fetches the next batch of data.
      * @return array the data fetched
      */
 
-    protected function fetchData(){
+    protected function fetchData()
+    {
 
-        if($this->_criteria === null){
+        if ($this->_criteria === null) {
             $this->_criteria = new \CDbCriteria();
-        }
-
-        if($this->count !== $this->_criteria->limit){
-
-            if($this->_criteria->limit > 0 && $this->_criteria->limit < $this->batchSize){
-                $this->batchSize = $this->_criteria->limit;
-            }
-
-            if($this->_limit === false) {
-                $this->_limit = $this->_criteria->limit;
-            }
-
             $this->_criteria->limit = $this->batchSize;
-
-            if($this->_offset === false)
-                $this->_criteria->offset = $this->_offset;
-
-            $this->_d = $this->_model->findAll($this->_criteria);
-
-            $this->_limit -= $this->getCountObject();
-            $this->_empty = $this->_d ? false:true;
-            $this->count += $this->getCountObject();
         }
+
+        if ($this->_limit === false) {
+            $this->_limit = $this->_criteria->limit;
+        }
+
+        $this->_criteria->offset = $this->_offset;
+
+        if($this->_limit < $this->batchSize){
+            $this->batchSize = $this->_limit;
+        }
+
+        if ($this->_criteria->limit > 0 && $this->batchSize > $this->_criteria->limit) {
+            $this->batchSize = $this->_criteria->limit;
+        } else {
+            $this->_criteria->limit = $this->batchSize;
+        }
+
+        if ($this->_limit) {
+            $this->_d = $this->_model->findAll($this->_criteria);
+            $this->_limit -= $this->getCountObject();
+        } else {
+            $this->_d = [];
+        }
+
+        $this->_empty = $this->_d ? false : true;
     }
 
     /**
@@ -90,19 +92,23 @@ class Batch extends CComponent implements Iterator
      */
     public function __construct($batchSize = 10, CActiveRecord $model, $each = false)
     {
-        if($batchSize)
+        if ($batchSize) {
             $this->batchSize = (int)$batchSize;
+        }
 
         $this->each = $each;
         $this->_model = clone $model;
     }
 
-    private function getCountObject(){
-        if($this->_d)
+    private function getCountObject()
+    {
+        if ($this->_d) {
             return count($this->_d);
+        }
     }
 
-    public function __destructor(){
+    public function __destructor()
+    {
         $this->flush();
     }
 
@@ -111,13 +117,15 @@ class Batch extends CComponent implements Iterator
      * @param array $params
      * @return $this
      */
-    public function findAll(\CDbCriteria $criteria = null, array $params = []){
-
-        if($criteria !== null)
+    public function findAll(CDbCriteria $criteria = null, array $params = [])
+    {
+        if ($criteria !== null) {
             $this->_criteria = $criteria;
+        }
 
-        if($this->_params=== null)
+        if ($this->_params === null) {
             $this->_params = $params;
+        }
 
         $this->fetchData();
         $this->setData();
@@ -127,12 +135,14 @@ class Batch extends CComponent implements Iterator
     /**
      * Set iterator data
      */
-    private function setData(){
-        $this->_keys=array_keys($this->_d);
-        $this->_key=reset($this->_keys);
+    private function setData()
+    {
+        $this->_keys = array_keys($this->_d);
+        $this->_key = reset($this->_keys);
     }
 
-    public function flush(){
+    public function flush()
+    {
         $this->_d = [];
     }
 
@@ -142,10 +152,11 @@ class Batch extends CComponent implements Iterator
      */
     public function rewind()
     {
-        if(!$this->_keys)
+        if (!$this->_keys) {
             $this->_keys = [];
+        }
 
-        $this->_key=reset($this->_keys);
+        $this->_key = reset($this->_keys);
     }
 
     /**
@@ -165,9 +176,9 @@ class Batch extends CComponent implements Iterator
      */
     public function current()
     {
-        if($this->each){
+        if ($this->each) {
             return $this->_d[$this->_key];
-        }else{
+        } else {
             return $this->_d;
         }
 
@@ -179,11 +190,10 @@ class Batch extends CComponent implements Iterator
      */
     public function next()
     {
-        $this->_prev = $this->_key;
-        if($this->each){
+        if ($this->each) {
             $this->valid();
-            $this->_key=next($this->_keys);
-        }else{
+            $this->_key = next($this->_keys);
+        } else {
             $this->getNextData();
         }
 
@@ -196,13 +206,14 @@ class Batch extends CComponent implements Iterator
      */
     public function valid()
     {
-        if($this->_key===false && !$this->_empty && $this->_limit){
+        if ($this->_key === false && !$this->_empty && $this->_limit) {
             $this->getNextData();
         }
-        return $this->_key!==false;
+        return $this->_key !== false;
     }
 
-    private function getNextData(){
+    private function getNextData()
+    {
         $this->_offset += $this->batchSize;
         $this->flush();
         $this->fetchData();
